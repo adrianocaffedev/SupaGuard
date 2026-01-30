@@ -133,7 +133,7 @@ export const TokenInput: React.FC<TokenInputProps> = ({ onSetToken }) => {
             
             <div className="p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-lg">
               <p className="text-[10px] text-emerald-400/80 leading-snug font-medium">
-                <strong>Dica:</strong> O token é gerado em <i>Account Settings > Access Tokens</i> no painel do Supabase.
+                <strong>Dica:</strong> O token é gerado em <i>Account Settings &gt; Access Tokens</i> no painel do Supabase.
               </p>
             </div>
           </div>
