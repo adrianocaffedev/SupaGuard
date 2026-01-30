@@ -10,11 +10,22 @@ import { TokenInput } from './components/TokenInput';
 import { TableExplorer } from './components/TableExplorer';
 
 const App: React.FC = () => {
+  // Verificação de segurança para o ambiente
+  const getSafeApiKey = () => {
+    try {
+      return (typeof process !== 'undefined' && process.env.API_KEY) || '';
+    } catch {
+      return '';
+    }
+  };
+
   const [state, setState] = useState<AppState>(() => {
     try {
+      const savedToken = localStorage.getItem('sb_token');
+      const savedProxy = localStorage.getItem('sb_proxy');
       return {
-        token: localStorage.getItem('sb_token'),
-        proxyUrl: localStorage.getItem('sb_proxy') || 'https://cors-anywhere.herokuapp.com/',
+        token: savedToken,
+        proxyUrl: savedProxy || 'https://cors-anywhere.herokuapp.com/',
         organizations: [],
         projects: [],
         selectedProject: null,
@@ -24,7 +35,8 @@ const App: React.FC = () => {
         error: null,
         activeView: 'dashboard',
       };
-    } catch {
+    } catch (e) {
+      console.warn('LocalStorage indisponível:', e);
       return {
         token: null,
         proxyUrl: 'https://cors-anywhere.herokuapp.com/',
@@ -204,10 +216,16 @@ const App: React.FC = () => {
   };
 
   const generateAiInsight = async (project: Project, tables: Table[]) => {
+    const key = getSafeApiKey();
+    if (!key) {
+      setAiAnalysis('Configure a variável de ambiente API_KEY para insights via IA.');
+      return;
+    }
+
     setAnalyzing(true);
     setAiAnalysis('');
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      const ai = new GoogleGenAI({ apiKey: key });
       const tableNames = tables.map(t => t.name).join(', ');
       const prompt = `Analise o projeto ${project.name} (${tableNames}). Dê um conselho curto de backup em Português (máximo 12 palavras).`;
 
@@ -222,6 +240,25 @@ const App: React.FC = () => {
       setAnalyzing(false);
     }
   };
+
+  // Se houver um erro fatal na API de conexão
+  if (state.error && !state.token) {
+    return (
+      <div className="min-h-screen bg-[#0d1117] flex items-center justify-center p-6 text-center">
+        <div className="max-w-md space-y-4">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h1 className="text-xl font-black text-white uppercase tracking-widest">Erro de Inicialização</h1>
+          <p className="text-gray-500 text-sm">{state.error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-6 py-3 bg-gray-800 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-gray-700"
+          >
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!state.token) {
     return <TokenInput onSetToken={handleSetToken} />;
@@ -411,7 +448,7 @@ const App: React.FC = () => {
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-900 rounded-xl md:rounded-2xl flex items-center justify-center">
                    <svg className="w-6 h-6 md:w-8 md:h-8 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 7v10c0 1.1.9 2 2 2h12a2 2 0 002-2V7M4 7a2 2 0 012-2h12a2 2 0 012 2M4 7l8 5 8-5" /></svg>
                 </div>
-                <p className="font-bold text-xs md:text-base">Selecione um projeto na lista lateral.</p>
+                <p className="font-bold text-xs md:text-base uppercase tracking-widest opacity-50">Selecione um projeto na lista lateral.</p>
               </div>
             )}
           </section>

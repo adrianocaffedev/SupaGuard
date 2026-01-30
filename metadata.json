@@ -1,5 +1,7 @@
 {
   "name": "SupaGuard Pro",
   "description": "A high-performance dashboard for managing Supabase projects, visualizing database status, and monitoring backups via the Supabase Management API.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "clipboard-read"
+  ]
 }
