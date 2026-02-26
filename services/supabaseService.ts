@@ -6,6 +6,11 @@ const BASE_URL = 'https://api.supabase.com/v1';
 const handleResponse = async (res: Response, context: string) => {
   if (res.ok) return res.json();
   
+  // Detecção de erros comuns de proxy/CORS
+  if (res.status === 403 && res.url.includes('cors-anywhere')) {
+    throw new Error(`Proxy Bloqueado: Você precisa ativar o acesso em https://cors-anywhere.herokuapp.com/opt-in`);
+  }
+
   if (res.status === 401) throw new Error(`Não Autorizado (401): Seu token sbp_... é inválido.`);
   if (res.status === 403) throw new Error(`Acesso Negado (403): O token não tem permissão para ${context}.`);
   if (res.status === 404) throw new Error(`O recurso ${context} não está disponível para o seu tipo de projeto (404).`);
@@ -27,7 +32,8 @@ export const supabaseApi = {
       return handleResponse(res, 'Organizações');
     } catch (err) {
       console.error('Fetch error:', err);
-      throw new Error('Erro de Conexão: O navegador ou o Proxy bloqueou a requisição.');
+      if (err instanceof Error && err.message.includes('Proxy Bloqueado')) throw err;
+      throw new Error('Erro de Conexão: Verifique seu Proxy ou Token. O servidor pode estar recusando a conexão via CORS.');
     }
   },
 
@@ -66,7 +72,6 @@ export const supabaseApi = {
   },
 
   getTables: async (token: string, projectRef: string, proxy: string = ''): Promise<Table[]> => {
-    // Forçamos a descoberta via SQL pois é mais confiável para listar tabelas reais
     try {
       const fallbackQuery = `
         SELECT 
@@ -78,12 +83,11 @@ export const supabaseApi = {
       `;
       const sqlResults = await supabaseApi.executeSql(token, projectRef, fallbackQuery, proxy);
       return sqlResults.map((r, idx) => ({ 
-        id: idx + 1000, // ID artificial para evitar conflitos
+        id: idx + 1000,
         name: r.name, 
         schema: r.schema 
       }));
     } catch (e) {
-      // Se SQL falhar, tenta a API oficial como última alternativa
       try {
         const url = `${proxy}${BASE_URL}/projects/${projectRef}/database/tables`;
         const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
