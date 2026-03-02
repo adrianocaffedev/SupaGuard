@@ -60,7 +60,17 @@ export const TokenInput: React.FC<TokenInputProps> = ({ onSetToken }) => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2.5">Access Token (sbp_...)</label>
+            <div className="flex items-center justify-between mb-2.5">
+              <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Access Token (sbp_...)</label>
+              <a 
+                href="https://supabase.com/dashboard/account/tokens" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[10px] text-emerald-500 font-black uppercase tracking-widest hover:underline"
+              >
+                Gerar Token ↗
+              </a>
+            </div>
             <div className="relative group">
               <input
                 type="password"
