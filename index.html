@@ -47,7 +47,8 @@
       }
     }
     </script>
-  </head>
+  <link rel="stylesheet" href="/index.css">
+</head>
   <body>
     <div id="root">
       <!-- Splash Screen nativo: Exibido enquanto o JS carrega -->
@@ -59,5 +60,6 @@
     </div>
     <!-- Inclusão explícita do index.tsx para garantir execução no Vercel -->
     <script type="module" src="./index.tsx"></script>
-  </body>
+  <script type="module" src="/index.tsx"></script>
+</body>
 </html>

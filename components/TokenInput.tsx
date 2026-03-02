@@ -12,6 +12,7 @@ export const TokenInput: React.FC<TokenInputProps> = ({ onSetToken }) => {
   const [errorType, setErrorType] = useState<'permission' | 'invalid' | 'proxy' | null>(null);
 
   const isValidFormat = (t: string) => t.trim().startsWith('sbp_');
+  const isProjectKey = (t: string) => t.trim().startsWith('sb_publishable_') || t.trim().startsWith('sb_secret_');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +20,9 @@ export const TokenInput: React.FC<TokenInputProps> = ({ onSetToken }) => {
 
     if (isValidFormat(token)) {
       onSetToken(token.trim(), proxy.trim());
+    } else if (isProjectKey(token)) {
+      setErrorType('invalid');
+      // Não limpamos o erro imediatamente para o usuário ler a mensagem
     } else {
       setErrorType('invalid');
       setTimeout(() => setErrorType(null), 4000);
@@ -75,7 +79,24 @@ export const TokenInput: React.FC<TokenInputProps> = ({ onSetToken }) => {
             </div>
             
             {errorType === 'invalid' && (
-              <p className="mt-2 text-[10px] text-red-500 font-bold uppercase tracking-wider animate-pulse">Token Inválido! Use o formato sbp_...</p>
+              <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
+                <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider mb-1">
+                  {isProjectKey(token) ? 'Token de Projeto Detectado' : 'Token Inválido'}
+                </p>
+                <p className="text-[11px] text-gray-400 leading-relaxed">
+                  {isProjectKey(token) 
+                    ? 'Você está usando uma chave de API do projeto. Para o SupaGuard, você precisa de um "Personal Access Token" que começa com "sbp_".'
+                    : 'O token deve começar com "sbp_". Verifique se você copiou o código correto.'}
+                </p>
+                <a 
+                  href="https://supabase.com/dashboard/account/tokens" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-block mt-2 text-[10px] text-emerald-500 font-black uppercase tracking-widest hover:underline"
+                >
+                  Criar Token em supabase.com ↗
+                </a>
+              </div>
             )}
           </div>
 
